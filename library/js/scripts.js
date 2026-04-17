@@ -96,8 +96,20 @@ var timeToWaitForLast = 100;
 function isSafeImageSrc(url) {
   if (!url || typeof url !== 'string') { return false; }
   var trimmed = jQuery.trim(url);
-  // Allow only http(s) absolute URLs or root-relative paths.
-  return /^(https?:\/\/|\/)/i.test(trimmed);
+
+  // Allow root-relative paths like "/images/avatar.jpg".
+  if (trimmed.charAt(0) === '/') {
+    // Reject protocol-relative URLs ("//example.com/...").
+    return trimmed.charAt(1) !== '/';
+  }
+
+  // Allow only absolute http(s) URLs after canonical parsing.
+  try {
+    var parsed = new URL(trimmed, window.location.origin);
+    return (parsed.protocol === 'http:' || parsed.protocol === 'https:');
+  } catch (e) {
+    return false;
+  }
 }
 
 function loadGravatars() {
